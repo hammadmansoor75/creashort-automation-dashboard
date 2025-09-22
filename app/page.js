@@ -16,35 +16,45 @@ import {
   TrendingUp,
   Calendar,
   RefreshCw,
-  BarChart3,
-  Filter,
-  Search,
-  Zap
+  Zap,
+  Trash2
 } from 'lucide-react';
 
 export default function Dashboard() {
   const { data: overview, loading, error, refresh } = useRealTimeData('/api/dashboard/overview', 30000);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupMessage, setCleanupMessage] = useState('');
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+  const handleCleanupFailed = async () => {
+    if (!confirm('Are you sure you want to remove all failed generation history? This action cannot be undone.')) {
+      return;
+    }
+
+    setCleanupLoading(true);
+    setCleanupMessage('');
+
+    try {
+      const response = await fetch('/api/dashboard/cleanup', {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setCleanupMessage(`Successfully cleaned up ${result.modifiedAgents} agents. Removed all failed generation history.`);
+        // Refresh the overview data
+        refresh();
+      } else {
+        setCleanupMessage(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      setCleanupMessage(`Error: ${error.message}`);
+    } finally {
+      setCleanupLoading(false);
+      // Clear message after 5 seconds
+      setTimeout(() => setCleanupMessage(''), 5000);
+    }
   };
-
-  const handleStatusFilter = (status) => {
-    setStatusFilter(status);
-  };
-
-  const getFilteredOverview = () => {
-    if (!overview) return overview;
-    
-    // For now, we'll return the overview as-is since the API doesn't support filtering
-    // In a real implementation, you'd pass these filters to the API
-    return overview;
-  };
-
-  const filteredOverview = getFilteredOverview();
 
   if (loading) {
     return (
@@ -81,40 +91,22 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-primary">Dashboard Overview</h1>
             <p className="text-gray-600 mt-2">Monitor your AI agent video generation system</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search agents, users, or metrics..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-10 pr-4 py-3 border border-gray-200 rounded-lg w-full sm:w-80 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white"
-              />
-            </div>
-            
-            {/* Filter Toggle */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                "flex items-center px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105",
-                showFilters
-                  ? "bg-primary text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
-              )}
+              onClick={handleCleanupFailed}
+              disabled={cleanupLoading || loading}
+              className="flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all duration-200 hover:scale-105"
             >
-              <Filter className="h-5 w-5 mr-2" />
-              Filters
+              <Trash2 className={cn("h-5 w-5 mr-2", cleanupLoading && "animate-spin")} />
+              {cleanupLoading ? 'Cleaning...' : 'Clean Failed'}
             </button>
             
-            {/* Refresh Button */}
             <button
               onClick={refresh}
               disabled={loading}
@@ -126,91 +118,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Filter Panel */}
-        {showFilters && (
-          <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Filter className="h-5 w-5 mr-2 text-indigo-500" />
-                Filter Agents
-              </h3>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <XCircle className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button
-                onClick={() => handleStatusFilter('all')}
-                className={cn(
-                  "flex items-center justify-center px-6 py-4 rounded-lg transition-all duration-200 hover:scale-105",
-                  statusFilter === 'all'
-                    ? "bg-primary text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
-                )}
-              >
-                <Users className="h-5 w-5 mr-2" />
-                All Agents
-              </button>
-              
-              <button
-                onClick={() => handleStatusFilter('active')}
-                className={cn(
-                  "flex items-center justify-center px-6 py-4 rounded-lg transition-all duration-200 hover:scale-105",
-                  statusFilter === 'active'
-                    ? "bg-success text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
-                )}
-              >
-                <Play className="h-5 w-5 mr-2" />
-                Active
-              </button>
-              
-              <button
-                onClick={() => handleStatusFilter('behind-schedule')}
-                className={cn(
-                  "flex items-center justify-center px-6 py-4 rounded-lg transition-all duration-200 hover:scale-105",
-                  statusFilter === 'behind-schedule'
-                    ? "bg-danger text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
-                )}
-              >
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Behind Schedule
-              </button>
-              
-              <button
-                onClick={() => handleStatusFilter('processing')}
-                className={cn(
-                  "flex items-center justify-center px-6 py-4 rounded-lg transition-all duration-200 hover:scale-105",
-                  statusFilter === 'processing'
-                    ? "bg-warning text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200"
-                )}
-              >
-                <Clock className="h-5 w-5 mr-2" />
-                Processing
-              </button>
-            </div>
-            
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Current filter: <span className="font-semibold text-gray-900 capitalize">{statusFilter.replace('-', ' ')}</span>
-                </div>
-                <button
-                  onClick={() => {
-                    setStatusFilter('all');
-                    setSearchTerm('');
-                  }}
-                  className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-                >
-                  Clear all filters
-                </button>
-              </div>
+        {/* Cleanup Message */}
+        {cleanupMessage && (
+          <div className={cn(
+            "p-4 rounded-lg border",
+            cleanupMessage.includes('Successfully') 
+              ? "bg-green-50 border-green-200 text-green-800" 
+              : "bg-red-50 border-red-200 text-red-800"
+          )}>
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              {cleanupMessage}
             </div>
           </div>
         )}
@@ -219,28 +137,28 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Agents"
-            value={filteredOverview.totalAgents}
+            value={overview.totalAgents}
             icon={Users}
             color="primary"
           />
           <StatCard
             title="Active Agents"
-            value={filteredOverview.activeAgents}
+            value={overview.activeAgents}
             icon={Play}
             color="success"
-            change={`${Math.round((filteredOverview.activeAgents / filteredOverview.totalAgents) * 100)}%`}
+            change={`${Math.round((overview.activeAgents / overview.totalAgents) * 100)}%`}
             changeType="positive"
           />
           <StatCard
             title="Behind Schedule"
-            value={filteredOverview.behindSchedule}
+            value={overview.behindSchedule}
             icon={AlertTriangle}
             color="danger"
-            changeType={filteredOverview.behindSchedule > 0 ? "negative" : "positive"}
+            changeType={overview.behindSchedule > 0 ? "negative" : "positive"}
           />
           <StatCard
             title="Processing Videos"
-            value={filteredOverview.processingVideos}
+            value={overview.processingVideos}
             icon={Clock}
             color="warning"
           />
@@ -250,28 +168,28 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Videos Today"
-            value={filteredOverview.videosGeneratedToday}
+            value={overview.videosGeneratedToday}
             icon={Calendar}
             color="secondary"
             changeType="positive"
           />
           <StatCard
             title="Videos This Week"
-            value={filteredOverview.videosGeneratedThisWeek}
+            value={overview.videosGeneratedThisWeek}
             icon={TrendingUp}
             color="primary"
             changeType="positive"
           />
           <StatCard
             title="Failed Videos"
-            value={filteredOverview.failedVideos}
+            value={overview.failedVideos}
             icon={XCircle}
             color="danger"
-            changeType={filteredOverview.failedVideos > 0 ? "negative" : "positive"}
+            changeType={overview.failedVideos > 0 ? "negative" : "positive"}
           />
           <StatCard
             title="Success Rate"
-            value={`${Math.round(((filteredOverview.videosGeneratedThisWeek - filteredOverview.failedVideos) / Math.max(filteredOverview.videosGeneratedThisWeek, 1)) * 100)}%`}
+            value={`${Math.round(Math.max(0, (overview.videosGeneratedThisWeek - overview.failedVideos) / Math.max(overview.videosGeneratedThisWeek, 1)) * 100)}%`}
             icon={CheckCircle}
             color="success"
             changeType="positive"
@@ -285,7 +203,7 @@ export default function Dashboard() {
               <Zap className="h-6 w-6 mr-3" />
               Quick Actions
             </h3>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <Link 
                 href="/agents"
                 className="group bg-white/15 backdrop-blur-sm border border-white/30 rounded-lg p-6 hover:bg-white/25 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
@@ -316,20 +234,6 @@ export default function Dashboard() {
                 </div>
               </Link>
               
-              <Link 
-                href="/analytics"
-                className="group bg-white/15 backdrop-blur-sm border border-white/30 rounded-lg p-6 hover:bg-white/25 transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">View Analytics</p>
-                    <p className="text-xs text-white/80">See insights</p>
-                  </div>
-                </div>
-              </Link>
               
               <Link 
                 href="/processing"
@@ -363,20 +267,20 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-600">Success Rate</span>
                 <span className="text-lg font-bold text-emerald-600">
-                  {Math.round(((filteredOverview.videosGeneratedThisWeek - filteredOverview.failedVideos) / Math.max(filteredOverview.videosGeneratedThisWeek, 1)) * 100)}%
+                  {Math.round(Math.max(0, (overview.videosGeneratedThisWeek - overview.failedVideos) / Math.max(overview.videosGeneratedThisWeek, 1)) * 100)}%
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div 
                   className="bg-success h-3 rounded-full transition-all duration-500 ease-out"
                   style={{ 
-                    width: `${Math.round(((filteredOverview.videosGeneratedThisWeek - filteredOverview.failedVideos) / Math.max(filteredOverview.videosGeneratedThisWeek, 1)) * 100)}%` 
+                    width: `${Math.round(Math.max(0, (overview.videosGeneratedThisWeek - overview.failedVideos) / Math.max(overview.videosGeneratedThisWeek, 1)) * 100)}%` 
                   }}
                 ></div>
               </div>
               <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>This week: {filteredOverview.videosGeneratedThisWeek} videos</span>
-                <span>Failed: {filteredOverview.failedVideos}</span>
+                <span>This week: {overview.videosGeneratedThisWeek} videos</span>
+                <span>Failed: {overview.failedVideos}</span>
               </div>
             </div>
           </div>
@@ -395,17 +299,17 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <span className="text-sm font-medium text-gray-700">Active Agents</span>
-                <span className="text-lg font-bold text-blue-600">{filteredOverview.activeAgents}</span>
+                <span className="text-lg font-bold text-blue-600">{overview.activeAgents}</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                 <span className="text-sm font-medium text-gray-700">Behind Schedule</span>
-                <span className={`text-lg font-bold ${filteredOverview.behindSchedule > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                  {filteredOverview.behindSchedule}
+                <span className={`text-lg font-bold ${overview.behindSchedule > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                  {overview.behindSchedule}
                 </span>
               </div>
               <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                 <span className="text-sm font-medium text-gray-700">Processing Now</span>
-                <span className="text-lg font-bold text-orange-600">{filteredOverview.processingVideos}</span>
+                <span className="text-lg font-bold text-orange-600">{overview.processingVideos}</span>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@ export default function SchedulePage() {
 
   useEffect(() => {
     fetchSchedule();
-  }, [typeFilter, daysFilter]);
+  }, [typeFilter, daysFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSchedule = async () => {
     try {

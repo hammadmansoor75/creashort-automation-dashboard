@@ -47,7 +47,6 @@ export async function GET(request) {
     const skip = (page - 1) * limit;
 
     const agents = await UserAgent.find(matchQuery)
-      .select('userId agentId agentName agentRole frequency schedule createdAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -56,29 +55,32 @@ export async function GET(request) {
     // Add computed fields for each agent
     const agentsWithStats = agents.map(agent => {
       const isBehindSchedule = agent.schedule.active && 
-        agent.schedule.nextGenerationDate < now && 
-        (!agent.schedule.pausedUntil || agent.schedule.pausedUntil <= now);
+        agent.schedule.nextGenerationDate < now;
 
-      const processingCount = agent.schedule.generationHistory.filter(
+      const totalGenerations = agent.schedule?.generationHistory?.length || 0;
+      
+      const processingCount = agent.schedule?.generationHistory?.filter(
         gen => gen.status === 'processing'
-      ).length;
+      ).length || 0;
 
-      const publishedCount = agent.schedule.generationHistory.filter(
-        gen => gen.status === 'published'
-      ).length;
+      const completedCount = agent.schedule?.generationHistory?.filter(
+        gen => gen.status === 'completed'
+      ).length || 0;
 
-      const failedCount = agent.schedule.generationHistory.filter(
+      const failedCount = agent.schedule?.generationHistory?.filter(
         gen => gen.status === 'failed'
-      ).length;
+      ).length || 0;
 
-      const lastGeneration = agent.schedule.generationHistory
-        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+      const lastGeneration = agent.schedule?.generationHistory?.length > 0 
+        ? agent.schedule.generationHistory.sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+        : null;
 
       return {
         ...agent,
         isBehindSchedule,
+        totalGenerations,
         processingCount,
-        publishedCount,
+        completedCount,
         failedCount,
         lastGeneration: lastGeneration ? {
           date: lastGeneration.date,

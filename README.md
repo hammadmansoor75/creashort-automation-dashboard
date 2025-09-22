@@ -84,8 +84,8 @@ A comprehensive dashboard application for monitoring AI agent video generation s
    ```
 
 4. **Start the development server**
-   ```bash
-   npm run dev
+```bash
+npm run dev
    ```
 
 5. **Open your browser**

@@ -6,10 +6,9 @@ export async function GET(request, { params }) {
   try {
     await connectDB();
 
-    const { agentId } = params;
+    const { agentId } = await params;
 
     const agent = await UserAgent.findOne({ agentId })
-      .select('userId agentId agentName agentRole promptTemplate originalPromptTemplate customInstructions voiceId fontStyle textColor selectedSocialMediaAccount language frequency schedule createdAt updatedAt')
       .lean();
 
     if (!agent) {
@@ -28,8 +27,8 @@ export async function GET(request, { params }) {
       gen => gen.status === 'processing'
     ).length;
 
-    const publishedCount = agent.schedule.generationHistory.filter(
-      gen => gen.status === 'published'
+    const completedCount = agent.schedule.generationHistory.filter(
+      gen => gen.status === 'completed'
     ).length;
 
     const failedCount = agent.schedule.generationHistory.filter(
@@ -39,23 +38,42 @@ export async function GET(request, { params }) {
     const lastGeneration = agent.schedule.generationHistory
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
+    const totalGenerations = agent.schedule.generationHistory.length;
+    const successfulGenerations = agent.schedule.generationHistory.filter(
+      gen => gen.status === 'completed' || gen.status === 'success'
+    ).length;
+
     const agentDetails = {
       ...agent,
       isBehindSchedule,
       processingCount,
-      publishedCount,
+      completedCount,
       failedCount,
+      totalGenerations,
+      successfulGenerations,
+      failedGenerations: failedCount,
       lastGeneration: lastGeneration ? {
         date: lastGeneration.date,
         status: lastGeneration.status,
         videoUrl: lastGeneration.videoUrl,
         scriptId: lastGeneration.scriptId,
         videoId: lastGeneration.videoId,
+        generationId: lastGeneration.generationId,
         error: lastGeneration.error
       } : null,
       // Get all generations (sorted by date, newest first)
       recentGenerations: agent.schedule.generationHistory
-        .sort((a, b) => new Date(b.date) - new Date(a.date)),
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(gen => ({
+          date: gen.date,
+          status: gen.status,
+          videoUrl: gen.videoUrl,
+          script: gen.script,
+          processingStartedAt: gen.processingStartedAt,
+          completedAt: gen.completedAt,
+          generationId: gen.generationId,
+          error: gen.error
+        })),
       // Get upcoming scheduled scripts
       upcomingScripts: agent.schedule.scheduledScripts
         .filter(script => !script.used)

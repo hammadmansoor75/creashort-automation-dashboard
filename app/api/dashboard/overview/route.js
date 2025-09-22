@@ -106,7 +106,7 @@ export async function GET() {
       }
     ]);
 
-    // Get failed videos count
+    // Get failed videos count for this week
     const failedVideos = await UserAgent.aggregate([
       {
         $project: {
@@ -114,7 +114,12 @@ export async function GET() {
             $size: {
               $filter: {
                 input: '$schedule.generationHistory',
-                cond: { $eq: ['$$this.status', 'failed'] }
+                cond: { 
+                  $and: [
+                    { $eq: ['$$this.status', 'failed'] },
+                    { $gte: ['$$this.date', oneWeekAgo] }
+                  ]
+                }
               }
             }
           }
