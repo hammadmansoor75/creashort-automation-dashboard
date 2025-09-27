@@ -196,7 +196,7 @@ export default function VideoStreamModal({ video, onClose }) {
                 <div className="flex justify-center space-x-3">
                   <button
                     onClick={retryLoad}
-                    className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors cursor-pointer"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Retry
@@ -205,7 +205,7 @@ export default function VideoStreamModal({ video, onClose }) {
                     href={video.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Open Direct
@@ -306,7 +306,7 @@ export default function VideoStreamModal({ video, onClose }) {
                 href={video.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open in New Tab
@@ -314,7 +314,7 @@ export default function VideoStreamModal({ video, onClose }) {
               <a
                 href={video.url}
                 download
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors cursor-pointer"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download

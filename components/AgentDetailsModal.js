@@ -43,10 +43,10 @@ export default function AgentDetailsModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white relative">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-700 px-8 py-6 text-white relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all duration-200"
+            className="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 rounded-full p-2 transition-all duration-200 cursor-pointer"
           >
             <X className="h-6 w-6" />
           </button>
@@ -157,7 +157,7 @@ export default function AgentDetailsModal({
                         <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{agentDetails.userId}</code>
                         <button
                           onClick={() => onCopyId(agentDetails.userId, `user-${agentDetails.agentId}`)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                          className="text-gray-400 hover:text-blue-600 transition-colors p-1 cursor-pointer"
                         >
                           {copiedId === `user-${agentDetails.agentId}` ? (
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -177,7 +177,7 @@ export default function AgentDetailsModal({
                         <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{agentDetails.agentId}</code>
                         <button
                           onClick={() => onCopyId(agentDetails.agentId, `agent-${agentDetails.agentId}`)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                          className="text-gray-400 hover:text-blue-600 transition-colors p-1 cursor-pointer"
                         >
                           {copiedId === `agent-${agentDetails.agentId}` ? (
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -197,7 +197,7 @@ export default function AgentDetailsModal({
                         <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{agentDetails._id}</code>
                         <button
                           onClick={() => onCopyId(agentDetails._id, `mongo-${agentDetails._id}`)}
-                          className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                          className="text-gray-400 hover:text-blue-600 transition-colors p-1 cursor-pointer"
                         >
                           {copiedId === `mongo-${agentDetails._id}` ? (
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -465,7 +465,7 @@ export default function AgentDetailsModal({
                                   title: `${agentDetails.agentName} - ${formatDate(gen.date)}`,
                                   generationId: gen.generationId.toString().slice(-8)
                                 })}
-                                className="inline-flex items-center px-3 py-2 text-xs font-medium text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                                className="inline-flex items-center px-3 py-2 text-xs font-medium text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
                                 title="Stream Video"
                               >
                                 <Eye className="h-3 w-3 mr-1" />
@@ -474,7 +474,7 @@ export default function AgentDetailsModal({
                               <a
                                 href={gen.videoUrl}
                                 download
-                                className="inline-flex items-center px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="inline-flex items-center px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                                 title="Download Video"
                               >
                                 <Download className="h-3 w-3 mr-1" />

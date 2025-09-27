@@ -51,7 +51,7 @@ export default function Pagination({
           "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
           currentPage === 1
             ? "text-gray-400 cursor-not-allowed"
-            : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 hover:shadow-md"
+            : "text-gray-700 hover:text-gray-900 hover:bg-gray-50 hover:shadow-md cursor-pointer"
         )}
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
@@ -81,8 +81,8 @@ export default function Pagination({
               className={cn(
                 "px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 min-w-[40px]",
                 isCurrentPage
-                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg transform scale-105"
-                  : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 hover:shadow-md hover:scale-105"
+                  ? "bg-gradient-to-r from-gray-700 to-gray-600 text-white shadow-lg transform scale-105 cursor-pointer"
+                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50 hover:shadow-md hover:scale-105 cursor-pointer"
               )}
             >
               {page}
@@ -99,7 +99,7 @@ export default function Pagination({
           "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
           currentPage === totalPages
             ? "text-gray-400 cursor-not-allowed"
-            : "text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 hover:shadow-md"
+            : "text-gray-700 hover:text-gray-900 hover:bg-gray-50 hover:shadow-md cursor-pointer"
         )}
       >
         Next

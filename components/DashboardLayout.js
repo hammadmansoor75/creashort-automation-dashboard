@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -8,11 +8,12 @@ import {
   LayoutDashboard, 
   Users, 
   Calendar, 
-  Clock, 
+  Clock,
   Settings,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +22,6 @@ const navigation = [
   { name: 'Agents', href: '/agents', icon: Users },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Processing', href: '/processing', icon: Clock },
-  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }) {
@@ -36,8 +36,10 @@ export default function DashboardLayout({ children }) {
     router.push('/login');
   };
 
+  // Update UTC time every second
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
       {/* Mobile sidebar */}
       <div className={cn(
         "fixed inset-0 z-50 lg:hidden",
@@ -57,7 +59,7 @@ export default function DashboardLayout({ children }) {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-gray-400 hover:text-white transition-colors ml-2"
+              className="text-gray-400 hover:text-white transition-colors ml-2 cursor-pointer"
             >
               <X className="h-6 w-6" />
             </button>
@@ -72,7 +74,7 @@ export default function DashboardLayout({ children }) {
                   className={cn(
                     "group flex items-center px-3 py-3 text-sm font-medium transition-all duration-200 relative",
                     isActive
-                      ? "text-white border-l-4 border-orange-500 bg-gray-800/50"
+                      ? "text-white border-l-4 border-amber-500 bg-gray-800/50"
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   )}
                   onClick={() => setSidebarOpen(false)}
@@ -91,7 +93,7 @@ export default function DashboardLayout({ children }) {
           <div className="p-4 border-t border-gray-700">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-105"
+              className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer"
             >
               <LogOut className="mr-3 h-5 w-5" />
               Logout
@@ -124,7 +126,7 @@ export default function DashboardLayout({ children }) {
                   className={cn(
                     "group flex items-center px-3 py-3 text-sm font-medium transition-all duration-200 relative",
                     isActive
-                      ? "text-white border-l-4 border-orange-500 bg-gray-800/50"
+                      ? "text-white border-l-4 border-amber-500 bg-gray-800/50"
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   )}
                 >
@@ -142,7 +144,7 @@ export default function DashboardLayout({ children }) {
           <div className="p-4 border-t border-gray-700">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-105"
+              className="w-full flex items-center px-3 py-3 text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer"
             >
               <LogOut className="mr-3 h-5 w-5" />
               Logout
@@ -156,7 +158,7 @@ export default function DashboardLayout({ children }) {
         <div className="sticky top-0 z-10 flex h-16 bg-white shadow-lg lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden hover:text-gray-700 transition-colors"
+            className="px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden hover:text-gray-700 transition-colors cursor-pointer"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -171,10 +173,8 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
 
-        <main className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+        <main>
+          {children}
         </main>
       </div>
     </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import { 
   Calendar, 
   Clock, 
@@ -9,29 +11,42 @@ import {
   CheckCircle, 
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  RefreshCw,
+  Eye,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
 import { cn, formatDate, formatRelativeTime } from '@/lib/utils';
 
 export default function SchedulePage() {
   const [schedule, setSchedule] = useState([]);
   const [summary, setSummary] = useState({});
+  const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [typeFilter, setTypeFilter] = useState('all');
   const [daysFilter, setDaysFilter] = useState(7);
+  const [currentPage, setCurrentPage] = useState(1);
   const [expandedItems, setExpandedItems] = useState(new Set());
 
   useEffect(() => {
+    setCurrentPage(1); // Reset to first page when filters change
     fetchSchedule();
   }, [typeFilter, daysFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetchSchedule();
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSchedule = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         type: typeFilter,
-        days: daysFilter.toString()
+        days: daysFilter.toString(),
+        page: currentPage.toString(),
+        limit: '10'
       });
       
       const response = await fetch(`/api/dashboard/schedule?${params}`);
@@ -41,6 +56,7 @@ export default function SchedulePage() {
       const data = await response.json();
       setSchedule(data.schedule);
       setSummary(data.summary);
+      setPagination(data.pagination);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -82,7 +98,10 @@ export default function SchedulePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-gray-600 font-medium">Loading schedule...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -97,8 +116,9 @@ export default function SchedulePage() {
           <p className="mt-1 text-sm text-gray-500">{error}</p>
           <button
             onClick={fetchSchedule}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+            className="mt-4 inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary hover:shadow-lg disabled:opacity-50 transition-all duration-200 hover:scale-105 cursor-pointer"
           >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Try again
           </button>
         </div>
@@ -108,74 +128,84 @@ export default function SchedulePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Track upcoming and overdue video generations
-            </p>
-          </div>
-        </div>
+      <PageHeader 
+        title="Schedule Overview"
+        subtitle="Track upcoming and overdue video generations across all agents"
+      >
+        <button
+          onClick={fetchSchedule}
+          disabled={loading}
+          className="flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:shadow-lg disabled:opacity-50 transition-all duration-200 hover:scale-105 cursor-pointer"
+        >
+          <RefreshCw className={cn("h-5 w-5 mr-2", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </PageHeader>
+
+      <div className="py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="space-y-6">
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Calendar className="h-6 w-6 text-gray-400" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {/* Total Scheduled */}
+          <div className="bg-white overflow-hidden rounded-lg shadow-lg border border-gray-200 hover:shadow-xl hover-lift group cursor-pointer">
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1 group-hover:text-gray-700 transition-colors">
+                    Total Scheduled
+                  </p>
+                  <p className="text-4xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors">
+                    {summary.total || 0}
+                  </p>
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Scheduled
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {summary.total || 0}
-                    </dd>
-                  </dl>
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 bg-primary">
+                    <Calendar className="h-8 w-8 text-white" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <AlertTriangle className="h-6 w-6 text-red-400" />
+          {/* Overdue */}
+          <div className="bg-white overflow-hidden rounded-lg shadow-lg border border-gray-200 hover:shadow-xl hover-lift group cursor-pointer">
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1 group-hover:text-gray-700 transition-colors">
+                    Overdue
+                  </p>
+                  <p className="text-4xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors">
+                    {summary.overdue || 0}
+                  </p>
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Overdue
-                    </dt>
-                    <dd className="text-lg font-medium text-red-600">
-                      {summary.overdue || 0}
-                    </dd>
-                  </dl>
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 bg-danger">
+                    <AlertTriangle className="h-8 w-8 text-white" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Clock className="h-6 w-6 text-blue-400" />
+          {/* Upcoming */}
+          <div className="bg-white overflow-hidden rounded-lg shadow-lg border border-gray-200 hover:shadow-xl hover-lift group cursor-pointer">
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1 group-hover:text-gray-700 transition-colors">
+                    Upcoming
+                  </p>
+                  <p className="text-4xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors">
+                    {summary.upcoming || 0}
+                  </p>
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Upcoming
-                    </dt>
-                    <dd className="text-lg font-medium text-blue-600">
-                      {summary.upcoming || 0}
-                    </dd>
-                  </dl>
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 bg-info">
+                    <Clock className="h-8 w-8 text-white" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -183,16 +213,17 @@ export default function SchedulePage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex gap-2">
+        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setTypeFilter('all')}
                 className={cn(
-                  "px-3 py-2 text-sm font-medium rounded-md",
+                  "px-6 py-4 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer",
                   typeFilter === 'all'
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-primary text-white shadow-lg"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:shadow-md border border-gray-200"
                 )}
               >
                 All
@@ -200,10 +231,10 @@ export default function SchedulePage() {
               <button
                 onClick={() => setTypeFilter('upcoming')}
                 className={cn(
-                  "px-3 py-2 text-sm font-medium rounded-md",
+                  "px-6 py-4 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer",
                   typeFilter === 'upcoming'
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-info text-white shadow-lg"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:shadow-md border border-gray-200"
                 )}
               >
                 Upcoming
@@ -211,27 +242,43 @@ export default function SchedulePage() {
               <button
                 onClick={() => setTypeFilter('overdue')}
                 className={cn(
-                  "px-3 py-2 text-sm font-medium rounded-md",
+                  "px-6 py-4 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer",
                   typeFilter === 'overdue'
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-danger text-white shadow-lg"
+                    : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:shadow-md border border-gray-200"
                 )}
               >
                 Overdue
               </button>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Days:</label>
-              <select
-                value={daysFilter}
-                onChange={(e) => setDaysFilter(parseInt(e.target.value))}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value={3}>3 days</option>
-                <option value={7}>7 days</option>
-                <option value={14}>14 days</option>
-                <option value={30}>30 days</option>
-              </select>
+            
+            {/* Days Filter */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center">
+                <Activity className="h-4 w-4 mr-2" />
+                Time Range:
+              </label>
+              <div className="flex gap-2">
+                {[
+                  { value: 3, label: '3d' },
+                  { value: 7, label: '7d' },
+                  { value: 14, label: '14d' },
+                  { value: 30, label: '30d' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setDaysFilter(option.value)}
+                    className={cn(
+                      "px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer min-w-[50px]",
+                      daysFilter === option.value
+                        ? "bg-secondary text-white shadow-lg"
+                        : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:shadow-md border border-gray-200"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -255,7 +302,7 @@ export default function SchedulePage() {
                 <div
                   key={item.agentId}
                   className={cn(
-                    "border rounded-lg p-4 transition-all duration-200",
+                    "border rounded-lg p-6 transition-all duration-200 shadow-sm hover:shadow-lg cursor-pointer",
                     getPriorityColor(item)
                   )}
                 >
@@ -305,7 +352,7 @@ export default function SchedulePage() {
                         </span>
                         <button
                           onClick={() => toggleExpanded(item.agentId)}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer"
                         >
                           {isExpanded ? (
                             <ChevronUp className="h-4 w-4" />
@@ -371,8 +418,9 @@ export default function SchedulePage() {
                                       href={item.lastGeneration.videoUrl} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
-                                      className="text-indigo-600 hover:text-indigo-900"
+                                      className="inline-flex items-center text-indigo-600 hover:text-indigo-900 font-medium hover:underline cursor-pointer"
                                     >
+                                      <Eye className="h-3 w-3 mr-1" />
                                       View Video
                                     </a>
                                   </dd>
@@ -390,6 +438,32 @@ export default function SchedulePage() {
               );
             })
           )}
+        </div>
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-600">
+                Showing{' '}
+                <span className="font-semibold text-gray-900">{(currentPage - 1) * 10 + 1}</span>
+                {' '}to{' '}
+                <span className="font-semibold text-gray-900">
+                  {Math.min(currentPage * 10, pagination.total)}
+                </span>
+                {' '}of{' '}
+                <span className="font-semibold text-gray-900">{pagination.total}</span>
+                {' '}scheduled items
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.pages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </div>
+        )}
+          </div>
         </div>
       </div>
     </DashboardLayout>

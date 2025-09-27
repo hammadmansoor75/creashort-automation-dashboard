@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 
-export default function StatCard({ title, value, change, changeType, icon: Icon, className, color }) {
+export default function StatCard({ title, subtitle, value, change, changeType, icon: Icon, className, color }) {
   const getColorClass = () => {
     switch (color) {
       case 'primary': return 'bg-primary';
@@ -17,15 +17,20 @@ export default function StatCard({ title, value, change, changeType, icon: Icon,
 
   return (
     <div className={cn(
-      "bg-white overflow-hidden rounded-lg shadow-lg border border-gray-200 hover:shadow-xl hover-lift group",
+      "bg-white overflow-hidden rounded-lg shadow-lg border border-gray-200 hover:shadow-xl hover-lift group cursor-pointer",
       className
     )}>
       <div className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-700 transition-colors">
+            <p className="text-sm font-medium text-gray-600 mb-1 group-hover:text-gray-700 transition-colors">
               {title}
             </p>
+            {subtitle && (
+              <p className="text-xs text-gray-500 mb-2 font-mono">
+                {subtitle}
+              </p>
+            )}
             <p className="text-4xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors">
               {value}
             </p>

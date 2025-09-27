@@ -2,18 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import PageHeader from '@/components/PageHeader';
 import AgentCard from '@/components/AgentCard';
 import AgentFilters from '@/components/AgentFilters';
 import AgentDetailsModal from '@/components/AgentDetailsModal';
 import VideoStreamModal from '@/components/VideoStreamModal';
 import Pagination from '@/components/Pagination';
-import { XCircle } from 'lucide-react';
+import { XCircle, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AgentsPage() {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actualSearchTerm, setActualSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
@@ -27,13 +30,13 @@ export default function AgentsPage() {
 
   useEffect(() => {
     fetchAgents();
-  }, [searchTerm, statusFilter, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [actualSearchTerm, statusFilter, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAgents = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        search: searchTerm,
+        search: actualSearchTerm,
         status: statusFilter,
         page: currentPage.toString(),
         limit: '10'
@@ -53,14 +56,24 @@ export default function AgentsPage() {
     }
   };
 
-  const handleSearch = (e) => {
+  const handleSearchInput = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+  };
+
+  const handleSearchSubmit = () => {
+    setActualSearchTerm(searchTerm);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
   };
 
   const handleStatusFilter = (status) => {
     setStatusFilter(status);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when filtering
   };
 
   const fetchAgentDetails = async (agentId) => {
@@ -143,26 +156,32 @@ export default function AgentsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-primary">AI Agents</h1>
-              <p className="mt-2 text-gray-600">
-                Manage and monitor your AI video generation agents
-              </p>
-            </div>
-          </div>
-        </div>
+      <PageHeader 
+        title="AI Agents"
+        subtitle="Manage and monitor your AI video generation agents"
+      >
+        <button
+          onClick={fetchAgents}
+          disabled={loading}
+          className="flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:shadow-lg disabled:opacity-50 transition-all duration-200 hover:scale-105 cursor-pointer"
+        >
+          <RefreshCw className={cn("h-5 w-5 mr-2", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </PageHeader>
+
+      <div className="py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="space-y-6">
 
         {/* Filters */}
         <AgentFilters
           searchTerm={searchTerm}
-          onSearchChange={handleSearch}
+          onSearchChange={handleSearchInput}
+          onSearchSubmit={handleSearchSubmit}
+          onKeyPress={handleKeyPress}
           statusFilter={statusFilter}
           onStatusFilter={handleStatusFilter}
-          onRefresh={fetchAgents}
         />
 
         {/* Agents Grid */}
@@ -219,6 +238,8 @@ export default function AgentsPage() {
           onClose={handleCloseVideo}
         />
 
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

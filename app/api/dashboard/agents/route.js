@@ -25,9 +25,10 @@ export async function GET(request) {
         'schedule.active': false
       };
     } else if (status === 'behind-schedule') {
+      const gracePeriodEnd = new Date(now.getTime() - 60 * 60 * 1000); // 60 minutes ago
       matchQuery = {
         'schedule.active': true,
-        'schedule.nextGenerationDate': { $lt: now }
+        'schedule.nextGenerationDate': { $lt: gracePeriodEnd }
       };
     } else if (status === 'processing') {
       matchQuery = {
@@ -53,9 +54,10 @@ export async function GET(request) {
       .lean();
 
     // Add computed fields for each agent
+    const gracePeriodEnd = new Date(now.getTime() - 60 * 60 * 1000); // 60 minutes ago
     const agentsWithStats = agents.map(agent => {
       const isBehindSchedule = agent.schedule.active && 
-        agent.schedule.nextGenerationDate < now;
+        agent.schedule.nextGenerationDate < gracePeriodEnd;
 
       const totalGenerations = agent.schedule?.generationHistory?.length || 0;
       
@@ -64,7 +66,7 @@ export async function GET(request) {
       ).length || 0;
 
       const completedCount = agent.schedule?.generationHistory?.filter(
-        gen => gen.status === 'completed'
+        gen => gen.status === 'completed' || gen.status === 'completed and posted'
       ).length || 0;
 
       const failedCount = agent.schedule?.generationHistory?.filter(

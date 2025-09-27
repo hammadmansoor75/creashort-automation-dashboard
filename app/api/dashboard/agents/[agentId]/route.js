@@ -20,15 +20,16 @@ export async function GET(request, { params }) {
 
     // Add computed fields
     const now = new Date();
+    const gracePeriodEnd = new Date(now.getTime() - 60 * 60 * 1000); // 60 minutes ago
     const isBehindSchedule = agent.schedule.active && 
-      agent.schedule.nextGenerationDate < now;
+      agent.schedule.nextGenerationDate < gracePeriodEnd;
 
     const processingCount = agent.schedule.generationHistory.filter(
       gen => gen.status === 'processing'
     ).length;
 
     const completedCount = agent.schedule.generationHistory.filter(
-      gen => gen.status === 'completed'
+      gen => gen.status === 'completed' || gen.status === 'completed and posted'
     ).length;
 
     const failedCount = agent.schedule.generationHistory.filter(
@@ -40,7 +41,7 @@ export async function GET(request, { params }) {
 
     const totalGenerations = agent.schedule.generationHistory.length;
     const successfulGenerations = agent.schedule.generationHistory.filter(
-      gen => gen.status === 'completed' || gen.status === 'success'
+      gen => gen.status === 'completed' || gen.status === 'completed and posted' || gen.status === 'success'
     ).length;
 
     const agentDetails = {
