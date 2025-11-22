@@ -108,12 +108,16 @@ export default function ProcessingPage() {
     let longestRunning = 0;
 
     allProcessingItems.forEach(item => {
-      const processingTime = Math.floor((new Date() - new Date(item.date)) / (1000 * 60));
+      if (!item.date) return;
+      const startDate = new Date(item.date);
+      if (isNaN(startDate.getTime())) return;
+      
+      const processingTime = Math.floor((new Date() - startDate) / (1000 * 60));
       totalProcessingTime += processingTime;
       longestRunning = Math.max(longestRunning, processingTime);
 
       const status = getProcessingStatus(item.date).status;
-      statusBreakdown[status]++;
+      statusBreakdown[status] = (statusBreakdown[status] || 0) + 1;
     });
 
     setStats({
@@ -130,8 +134,10 @@ export default function ProcessingPage() {
   };
 
   const getProcessingDuration = (startDate) => {
+    if (!startDate) return 'Unknown';
     const now = new Date();
     const start = new Date(startDate);
+    if (isNaN(start.getTime())) return 'Invalid date';
     const diffInMinutes = Math.floor((now - start) / (1000 * 60));
     
     if (diffInMinutes < 60) return `${diffInMinutes}m`;
@@ -141,8 +147,10 @@ export default function ProcessingPage() {
   };
 
   const getProcessingStatus = (startDate) => {
+    if (!startDate) return { status: 'unknown', color: 'text-gray-600' };
     const now = new Date();
     const start = new Date(startDate);
+    if (isNaN(start.getTime())) return { status: 'invalid-date', color: 'text-gray-600' };
     const diffInMinutes = Math.floor((now - start) / (1000 * 60));
     
     if (diffInMinutes < 5) return { status: 'starting', color: 'text-blue-600' };
@@ -409,19 +417,21 @@ export default function ProcessingPage() {
                                       processingStatus.status === 'starting' ? "bg-gradient-to-r from-blue-400 to-blue-500" :
                                       processingStatus.status === 'processing' ? "bg-gradient-to-r from-yellow-400 to-orange-400" :
                                       processingStatus.status === 'taking-long' ? "bg-gradient-to-r from-orange-400 to-red-400" :
+                                      processingStatus.status === 'unknown' || processingStatus.status === 'invalid-date' ? "bg-gradient-to-r from-gray-400 to-gray-500" :
                                       "bg-gradient-to-r from-red-400 to-red-500"
                                     )}></div>
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-center space-x-3 mb-2">
                                       <p className="text-lg font-bold text-gray-900">
-                                        Generation #{item.generationId.toString().slice(-8)}
+                                        Generation #{item.generationId ? item.generationId.toString().slice(-8) : 'N/A'}
                                       </p>
                                       <span className={cn(
                                         "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm",
                                         processingStatus.status === 'starting' ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300" :
                                         processingStatus.status === 'processing' ? "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300" :
                                         processingStatus.status === 'taking-long' ? "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300" :
+                                        processingStatus.status === 'unknown' || processingStatus.status === 'invalid-date' ? "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300" :
                                         "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300"
                                       )}>
                                         {processingStatus.status.replace('-', ' ')}
@@ -430,7 +440,7 @@ export default function ProcessingPage() {
                                     <div className="flex items-center space-x-6 text-sm text-gray-600">
                                       <span className="flex items-center bg-white px-3 py-1 rounded-lg shadow-sm">
                                         <Clock className="h-4 w-4 mr-2 text-blue-500" />
-                                        Started {formatRelativeTime(item.date)}
+                                        Started {item.date ? formatRelativeTime(item.date) : 'Unknown'}
                                       </span>
                                       <span className="flex items-center bg-white px-3 py-1 rounded-lg shadow-sm">
                                         <Timer className="h-4 w-4 mr-2 text-green-500" />
@@ -467,6 +477,7 @@ export default function ProcessingPage() {
                                       processingStatus.status === 'starting' ? "bg-gradient-to-r from-blue-400 to-blue-500 w-1/4" :
                                       processingStatus.status === 'processing' ? "bg-gradient-to-r from-yellow-400 to-orange-400 w-1/2" :
                                       processingStatus.status === 'taking-long' ? "bg-gradient-to-r from-orange-400 to-red-400 w-3/4" :
+                                      processingStatus.status === 'unknown' || processingStatus.status === 'invalid-date' ? "bg-gradient-to-r from-gray-400 to-gray-500 w-1/2" :
                                       "bg-gradient-to-r from-red-400 to-red-500 w-full"
                                     )}
                                   ></div>

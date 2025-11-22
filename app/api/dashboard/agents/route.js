@@ -34,6 +34,12 @@ export async function GET(request) {
       matchQuery = {
         'schedule.generationHistory.status': 'processing'
       };
+    } else if (status === 'failed') {
+      matchQuery = {
+        'schedule.generationHistory': {
+          $elemMatch: { status: 'failed' }
+        }
+      };
     }
 
     // Add search functionality

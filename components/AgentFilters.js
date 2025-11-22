@@ -72,6 +72,17 @@ export default function AgentFilters({
           >
             Processing
           </button>
+          <button
+            onClick={() => onStatusFilter('failed')}
+            className={cn(
+              "px-6 py-4 text-sm font-semibold rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer",
+              statusFilter === 'failed'
+                ? "bg-danger text-white shadow-lg"
+                : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:shadow-md border border-gray-200"
+            )}
+          >
+            Failed
+          </button>
         </div>
       </div>
     </div>
