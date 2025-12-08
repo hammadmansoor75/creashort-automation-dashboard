@@ -53,7 +53,7 @@ export default function ProcessingPage() {
       const interval = setInterval(fetchProcessingAgents, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
-  }, [autoRefresh]);
+  }, [autoRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchProcessingAgents = async () => {
     try {
