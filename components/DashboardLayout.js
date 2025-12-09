@@ -13,13 +13,15 @@ import {
   Menu,
   X,
   LogOut,
-  Globe
+  Globe,
+  UserCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Overview', href: '/', icon: LayoutDashboard },
   { name: 'Agents', href: '/agents', icon: Users },
+  { name: 'Users & Agents', href: '/user-agents', icon: UserCheck },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Processing', href: '/processing', icon: Clock },
 ];

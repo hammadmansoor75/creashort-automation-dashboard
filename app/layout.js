@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning={true}
       >
         <AuthWrapper>
-          {children}
+        {children}
         </AuthWrapper>
       </body>
     </html>

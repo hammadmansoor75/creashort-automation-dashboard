@@ -67,6 +67,9 @@ const UserAgentSchema = new Schema(
 // Create a compound index on userId and agentId for faster lookups
 UserAgentSchema.index({ userId: 1, agentId: 1 }, { unique: true });
 
+// Create a single field index on userId for faster user searches
+UserAgentSchema.index({ userId: 1 });
+
 // Create or get the model
 const UserAgent = mongoose.models.UserAgent || mongoose.model('UserAgent', UserAgentSchema);
 
